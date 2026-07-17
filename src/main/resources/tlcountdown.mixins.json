@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.github.gamermax1254.tlcountdown.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "client": [
+    "TrafficLightBlockEntityAccessor",
+    "TrafficLightRendererMixin"
+  ],
+  "mixins": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
