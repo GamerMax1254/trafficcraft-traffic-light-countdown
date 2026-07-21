@@ -1,0 +1,55 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+loom {
+    forge {
+        mixinConfig "tlcountdown.mixins.json"
+    }
+}
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    forge "net.minecraftforge:forge:$rootProject.forge_version"
+
+    modImplementation("dev.architectury:architectury-forge:${rootProject.architectury_api_version}")
+
+    // MixinExtras — нужен для Architectury Mixin в dev-окружении
+    implementation("io.github.llamalad7:mixinextras-forge:0.3.5")
+    annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5")
+
+    modImplementation("de.mrjulsen.mcdragonlib:dragonlib-forge:${rootProject.minecraft_version}-${rootProject.dragonlib_version}")
+    modImplementation files("../libs/trafficcraft-forge-1.20.1-1.2.0-beta.3.jar")
+
+    common(project(path: ':common', configuration: 'namedElements')) { transitive false }
+    shadowBundle project(path: ':common', configuration: 'transformProductionForge')
+}
+
+shadowJar {
+    exclude "fabric.mod.json"
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = 'dev-shadow'
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "${modid}",
+  "version": "${version}",
+  "name": "${display_name}",
+  "description": "${description}",
+  "authors": ["${authors}"],
+  "contributors": ["MrJulsen (author of TrafficCraft, the base mod)"],
+  "contact": {
+    "sources": "${source}",
+    "issues": "${issues}",
+    "homepage": "${homepage}"
+  },
+  "license": "${license}",
+  "icon": "${icon}",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "io.github.gamermax1254.tlcountdown.fabric.TrafficLightCountdownFabric"
+    ]
+  },
+  "mixins": [
+    "tlcountdown.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=${java_version}",
+    "fabric-api": "*",
+    "trafficcraft": "${trafficcraft_version}",
+    "dragonlib": "${dragonlib_version}"
+  }
+}
