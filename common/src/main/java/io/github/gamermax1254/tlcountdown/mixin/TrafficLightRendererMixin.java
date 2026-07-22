@@ -54,33 +54,17 @@ public class TrafficLightRendererMixin {
 
             remaining = RemoteScheduleLearner.getRemainingTicks(be, globalTick);
 
-            // Если мы в состоянии переобучения — показываем "-- --" всё время
-            if (RemoteScheduleLearner.isRelearning(be)) {
-                ActivePhase stalePhase = ActivePhase.detect(be);
-                if (stalePhase != ActivePhase.RED && stalePhase != ActivePhase.GREEN) return;
-
-                int[] staleSlots = pickTargetSlots(be, segments);
-                for (int slot : staleSlots) {
-                    CountdownTextRenderer.renderOnSlot(
-                            graphics.poseStack(),
-                            graphics.multiBufferSource(),
-                            slot,
-                            segments,
-                            0,
-                            true,   // stale = true
-                            stalePhase.color,
-                            graphics.packedLight(),
-                            ClientTickTracker.getGlobalTicks()
-                    );
-                }
+            // Если ещё учимся или переобучаемся — покажем "-- --"
+            if (RemoteScheduleLearner.isRelearning(be) ||
+                    (remaining == -1 && !RemoteScheduleLearner.hasLearnedCycle(be))) {
+                showStale(graphics, be, segments);
                 return;
             }
 
-            // Если данные разошлись — сбрасываем и запускаем цикл переобучения
-            if (remaining <= 0) {
-                if (RemoteScheduleLearner.hasLearnedCycle(be)) {
+            // Если remaining в лёгком минусе — терпим, если в глубоком — сбрасываем
+            if (remaining < 0) {
+                if (remaining < -20) {
                     RemoteScheduleLearner.resetLearning(be);
-                    // На следующем кадре сработает isRelearning и покажет "-- --"
                 }
                 return;
             }
@@ -161,5 +145,27 @@ public class TrafficLightRendererMixin {
         }
 
         return new int[]{};
+    }
+
+    private static void showStale(BERGraphics<TrafficLightBlockEntity> graphics,
+                                  TrafficLightBlockEntity be,
+                                  int segments) {
+        ActivePhase stalePhase = ActivePhase.detect(be);
+        if (stalePhase != ActivePhase.RED && stalePhase != ActivePhase.GREEN) return;
+
+        int[] staleSlots = pickTargetSlots(be, segments);
+        for (int slot : staleSlots) {
+            CountdownTextRenderer.renderOnSlot(
+                    graphics.poseStack(),
+                    graphics.multiBufferSource(),
+                    slot,
+                    segments,
+                    0,
+                    true,
+                    stalePhase.color,
+                    graphics.packedLight(),
+                    ClientTickTracker.getGlobalTicks()
+            );
+        }
     }
 }

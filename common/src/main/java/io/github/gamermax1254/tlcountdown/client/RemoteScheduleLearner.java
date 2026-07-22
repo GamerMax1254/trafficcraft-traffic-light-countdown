@@ -114,11 +114,17 @@ public final class RemoteScheduleLearner {
             st.learnedCycle = newCycle;
             st.totalCycleTicks = newTotal;
         } else {
-            // Не совпал — значит расписание нестабильное или сложное
-            // Начинаем заново
-            st.learnedCycle = newCycle;
-            st.totalCycleTicks = newTotal;
-            st.confirmedCycles = 1;
+            // Не совпал — но если у нас уже был подтверждённый цикл, не перезаписываем сразу
+            // Даем шанс: снижаем "уверенность", но сохраняем старый цикл.
+            if (st.confirmedCycles > 1) {
+                st.confirmedCycles--;
+                // Не трогаем learnedCycle — вдруг это был случайный разброс
+            } else {
+                // Действительно расписание поменялось — сбрасываем
+                st.learnedCycle = newCycle;
+                st.totalCycleTicks = newTotal;
+                st.confirmedCycles = 1;
+            }
         }
 
         // Обнуляем наблюдение для следующего цикла
@@ -134,8 +140,8 @@ public final class RemoteScheduleLearner {
         if (a.size() != b.size()) return false;
         for (int i = 0; i < a.size(); i++) {
             if (!a.get(i).colors.equals(b.get(i).colors)) return false;
-            // Небольшой допуск на длительность (±2 тика)
-            if (Math.abs(a.get(i).durationTicks - b.get(i).durationTicks) > 2) return false;
+            // Небольшой допуск на длительность (±5 тика)
+            if (Math.abs(a.get(i).durationTicks - b.get(i).durationTicks) > 5) return false;
         }
         return true;
     }
