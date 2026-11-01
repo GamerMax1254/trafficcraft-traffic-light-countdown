@@ -20,6 +20,10 @@ public final class RemoteScheduleLearner {
     // Сколько зафиксированных полных циклов должно совпасть, прежде чем считать данные надёжными
     private static final int REQUIRED_CYCLES = 1;
 
+    // Если светофор не рендерился дольше этого времени (например, чанк выгрузился),
+    // сохранённый отсчёт фазы уже недействителен.
+    private static final int STALE_GAP_TICKS = 20 * 5;
+
     private static final Map<Long, State> STATES = new HashMap<>();
 
     private static class Phase {
@@ -51,6 +55,10 @@ public final class RemoteScheduleLearner {
         // Текущий индекс в learnedCycle
         int currentLearnedPhaseIndex = -1;
         int ticksIntoCurrentPhase = 0;
+
+        // Первый замкнутый цикл содержит частично наблюдённую первую фазу,
+        // поэтому он используется только для «прогрева» и не сохраняется.
+        boolean primed = false;
     }
 
     /**
@@ -60,6 +68,8 @@ public final class RemoteScheduleLearner {
     public static void observe(TrafficLightBlockEntity be, long globalTick) {
         long key = be.getPos().asLong();
         State st = STATES.computeIfAbsent(key, k -> new State());
+
+        boolean gap = st.inactivityTicks > STALE_GAP_TICKS;
         st.inactivityTicks = 0;
 
         Set<TrafficLightColor> nowColors = new HashSet<>(be.getEnabledColors());
@@ -73,6 +83,20 @@ public final class RemoteScheduleLearner {
 
         if (nowColors.equals(st.currentColors)) {
             // Фаза продолжается
+            return;
+        }
+
+        if (gap) {
+            // Светофор долго не рендерился: старый отсчёт фазы больше не действителен.
+            // Синхронизируем начало фазы с текущим тиком. Уже выученный цикл сохраняем,
+            // чтобы цифры не пропадали; следующая смена фазы уточнит отсчёт.
+            st.observedPhases.clear();
+            st.currentColors = nowColors;
+            st.currentPhaseStartTick = (int) globalTick;
+            if (st.learnedCycle == null) {
+                st.confirmedCycles = 0;
+                st.primed = false;
+            }
             return;
         }
 
@@ -95,6 +119,19 @@ public final class RemoteScheduleLearner {
         // Замыкание = новая начатая фаза совпадает с первой в observedPhases
         Set<TrafficLightColor> firstObserved = st.observedPhases.get(0).colors;
         if (!newFirstColors.equals(firstObserved)) return;
+
+        if (!st.primed) {
+            // Первый замкнутый цикл содержит частично наблюдённую первую фазу:
+            // её длительность равна не полной фазе, а остатку с момента начала
+            // наблюдения. Если сохранить её как настоящую, таймер будет считать,
+            // что фаза уже закончилась, и бесконечно переучиваться.
+            // Поэтому первый цикл только «прогревает» состояние.
+            st.primed = true;
+            st.observedPhases.clear();
+            st.learnedCycle = null;
+            st.confirmedCycles = 0;
+            return;
+        }
 
         // Цикл замкнулся!
         List<Phase> newCycle = new ArrayList<>(st.observedPhases);
@@ -127,8 +164,9 @@ public final class RemoteScheduleLearner {
         if (a.size() != b.size()) return false;
         for (int i = 0; i < a.size(); i++) {
             if (!a.get(i).colors.equals(b.get(i).colors)) return false;
-            // Небольшой допуск на длительность (±2 тика)
-            if (Math.abs(a.get(i).durationTicks - b.get(i).durationTicks) > 2) return false;
+            // Небольшой допуск на длительность (±10 тиков = 0.5 сек):
+            // тайминги контроллера и клиентские тики слегка расходятся.
+            if (Math.abs(a.get(i).durationTicks - b.get(i).durationTicks) > 10) return false;
         }
         return true;
     }
