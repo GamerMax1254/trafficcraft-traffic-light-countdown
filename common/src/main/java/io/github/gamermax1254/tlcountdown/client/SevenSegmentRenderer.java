@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public final class SevenSegmentRenderer {
@@ -76,16 +75,16 @@ public final class SevenSegmentRenderer {
             int packedLight
     ) {
         Matrix4f m = poseStack.last().pose();
-        Matrix3f n = poseStack.last().normal();
+        PoseStack.Pose pose = poseStack.last();
 
         int a = (color >> 24) & 0xFF;
         int r = (color >> 16) & 0xFF;
         int g = (color >> 8) & 0xFF;
         int b = color & 0xFF;
 
-        vc.vertex(m, x,     y,     0).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(n, 0, 0, 1).endVertex();
-        vc.vertex(m, x,     y + h, 0).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(n, 0, 0, 1).endVertex();
-        vc.vertex(m, x + w, y + h, 0).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(n, 0, 0, 1).endVertex();
-        vc.vertex(m, x + w, y,     0).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(n, 0, 0, 1).endVertex();
+        vc.addVertex(m, x,     y,     0).setColor(r, g, b, a).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(pose, 0, 0, 1);
+        vc.addVertex(m, x,     y + h, 0).setColor(r, g, b, a).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(pose, 0, 0, 1);
+        vc.addVertex(m, x + w, y + h, 0).setColor(r, g, b, a).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(pose, 0, 0, 1);
+        vc.addVertex(m, x + w, y,     0).setColor(r, g, b, a).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(pose, 0, 0, 1);
     }
 }

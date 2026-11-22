@@ -31,7 +31,7 @@ dependencies {
     modImplementation("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${rootProject.forge_config_api_port_version}")
 
     modImplementation("de.mrjulsen.mcdragonlib:dragonlib-fabric:${rootProject.minecraft_version}-${rootProject.dragonlib_version}")
-    modCompileOnly files("../libs/trafficcraft-fabric-1.20.1-1.2.0-beta.3.jar")
+    modCompileOnly("de.mrjulsen.trafficcraft:trafficcraft-fabric:${rootProject.minecraft_version}-${rootProject.trafficcraft_version}")
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')

@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[${forge_version_int},)"
+loaderVersion="[4,)"
 license="${license}"
 issueTrackerURL="${issues}"
 
@@ -13,29 +13,32 @@ description='''${description}'''
 logoFile="${icon}"
 
 [[dependencies.${modid}]]
-modId="forge"
-mandatory=true
-versionRange="[${forge_version_int},)"
+modId="neoforge"
+type="required"
+versionRange="[21.1,)"
 ordering="NONE"
 side="CLIENT"
 
 [[dependencies.${modid}]]
 modId="minecraft"
-mandatory=true
-versionRange="[${minecraft_version},1.21)"
+type="required"
+versionRange="[${minecraft_version},1.21.2)"
 ordering="NONE"
 side="CLIENT"
 
 [[dependencies.${modid}]]
 modId="trafficcraft"
-mandatory=true
+type="required"
 versionRange="${trafficcraft_version}"
 ordering="AFTER"
 side="CLIENT"
 
 [[dependencies.${modid}]]
 modId="dragonlib"
-mandatory=true
+type="required"
 versionRange="${dragonlib_version}"
 ordering="AFTER"
 side="CLIENT"
+
+[[mixins]]
+config="tlcountdown.mixins.json"
