@@ -14,7 +14,6 @@ public final class ClientTickTracker {
 
     private static final Map<Long, Entry> DATA = new HashMap<>();
     private static final int TTL_TICKS = 20 * 30; // 30 секунд
-    public static final int MAX_DRIFT_TICKS = 40; // 2 секунды рассинхрона
 
     private static long globalTicks = 0;
 
